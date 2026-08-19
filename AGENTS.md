@@ -80,6 +80,9 @@ Development dependencies, stored in uv's `dev` dependency group:
 - ruff
 - jupyterlab
 - ipykernel
+- jupyterlab-lsp
+- python-lsp-server
+- jupyter-resource-usage
 
 ### Generated files
 
