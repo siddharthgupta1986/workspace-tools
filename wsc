@@ -1,0 +1,144 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+WORKSPACE_ROOT="${WORKSPACE_ROOT:-$HOME/workspaces}"
+RUNTIME_DEPENDENCIES=(numpy pandas matplotlib scipy requests)
+DEV_DEPENDENCIES=(pytest hypothesis pytest-timeout ruff jupyterlab ipykernel)
+start_jupyter=true
+name=""
+
+usage() {
+  echo "Usage: wsc [name] [--nj]"
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --nj)
+      start_jupyter=false
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    -* )
+      echo "Unknown option: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+    *)
+      if [[ -n "$name" ]]; then
+        echo "Only one workspace name may be provided" >&2
+        usage >&2
+        exit 2
+      fi
+      name="$1"
+      shift
+      ;;
+  esac
+done
+
+mkdir -p "$WORKSPACE_ROOT"
+
+if [[ -z "$name" ]]; then
+  counter_file="$WORKSPACE_ROOT/.workspace_counter"
+  last_number=0
+
+  if [[ -f "$counter_file" ]]; then
+    read -r last_number < "$counter_file" || true
+    if [[ ! "$last_number" =~ ^[0-9]+$ ]]; then
+      echo "Invalid counter file: $counter_file" >&2
+      exit 1
+    fi
+  fi
+
+  next_number=$((last_number + 1))
+  while [[ -e "$WORKSPACE_ROOT/workspace_$next_number" ]]; do
+    next_number=$((next_number + 1))
+  done
+
+  printf '%s\n' "$next_number" > "$counter_file"
+  name="workspace_$next_number"
+elif [[ ! "$name" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
+  echo "Invalid workspace name: $name" >&2
+  exit 1
+fi
+
+destination="$WORKSPACE_ROOT/$name"
+if [[ -e "$destination" || -L "$destination" ]]; then
+  echo "Workspace already exists: $destination" >&2
+  exit 1
+fi
+
+mkdir "$destination"
+
+# Ignore any environment that was active when wsc was called. This workspace
+# always gets and uses its own uv-managed virtual environment.
+unset VIRTUAL_ENV
+
+uv init --bare --python 3.12 "$destination"
+uv python pin --directory "$destination" 3.12
+uv add --directory "$destination" --no-sync "${RUNTIME_DEPENDENCIES[@]}"
+uv add --directory "$destination" --dev "${DEV_DEPENDENCIES[@]}"
+
+printf '%s\n' \
+  '"""Implement the interview solution here."""' \
+  '' \
+  '' \
+  'def solve() -> None:' \
+  '    """Replace this placeholder with your solution."""' \
+  '    raise NotImplementedError' \
+  > "$destination/solution.py"
+
+printf '%s\n' \
+  '"""Tests for the interview solution."""' \
+  '' \
+  '# Property-test template:' \
+  '# from hypothesis import given, strategies as st' \
+  '# from solution import solve' \
+  '#' \
+  '# @given(st.lists(st.integers()))' \
+  '# def test_solution(values: list[int]) -> None:' \
+  '#     assert solve(values) == expected_result' \
+  '' \
+  '' \
+  'def test_workspace_ready() -> None:' \
+  '    assert True' \
+  > "$destination/test_solution.py"
+
+printf '%s\n' \
+  '# Interview Notes' \
+  '' \
+  '## Clarifying questions' \
+  '' \
+  '## Approach and complexity' \
+  '' \
+  '## Edge cases' \
+  > "$destination/notes.md"
+
+printf '%s\n' \
+  '.venv/' \
+  '__pycache__/' \
+  '.pytest_cache/' \
+  '.ruff_cache/' \
+  '.hypothesis/' \
+  '.ipynb_checkpoints/' \
+  '*.py[cod]' \
+  > "$destination/.gitignore"
+
+git -C "$destination" init -q
+
+echo "Created: $destination"
+echo "Python: 3.12"
+
+cd "$destination"
+# shellcheck disable=SC1091
+source .venv/bin/activate
+
+if [[ "$start_jupyter" == true ]]; then
+  echo "Virtual environment activated; starting JupyterLab..."
+  exec jupyter lab
+fi
+
+echo "JupyterLab was not started. To activate this environment:"
+echo "  cd '$destination' && source .venv/bin/activate"

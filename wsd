@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+WORKSPACE_ROOT="${WORKSPACE_ROOT:-$HOME/workspaces}"
+
+if [[ $# -ne 1 ]]; then
+  echo "Usage: wsd <name>" >&2
+  exit 2
+fi
+
+name="$1"
+if [[ ! "$name" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
+  echo "Invalid workspace name: $name" >&2
+  exit 1
+fi
+
+destination="$WORKSPACE_ROOT/$name"
+if [[ ! -e "$destination" && ! -L "$destination" ]]; then
+  echo "Workspace does not exist: $destination" >&2
+  exit 1
+fi
+
+trash "$destination"
+echo "Moved workspace to Trash: $destination"
