@@ -82,41 +82,6 @@ uv add --directory "$destination" --no-sync "${RUNTIME_DEPENDENCIES[@]}"
 uv add --directory "$destination" --dev "${DEV_DEPENDENCIES[@]}"
 
 printf '%s\n' \
-  '"""Implement the interview solution here."""' \
-  '' \
-  '' \
-  'def solve() -> None:' \
-  '    """Replace this placeholder with your solution."""' \
-  '    raise NotImplementedError' \
-  > "$destination/solution.py"
-
-printf '%s\n' \
-  '"""Tests for the interview solution."""' \
-  '' \
-  '# Property-test template:' \
-  '# from hypothesis import given, strategies as st' \
-  '# from solution import solve' \
-  '#' \
-  '# @given(st.lists(st.integers()))' \
-  '# def test_solution(values: list[int]) -> None:' \
-  '#     assert solve(values) == expected_result' \
-  '' \
-  '' \
-  'def test_workspace_ready() -> None:' \
-  '    assert True' \
-  > "$destination/test_solution.py"
-
-printf '%s\n' \
-  '# Interview Notes' \
-  '' \
-  '## Clarifying questions' \
-  '' \
-  '## Approach and complexity' \
-  '' \
-  '## Edge cases' \
-  > "$destination/notes.md"
-
-printf '%s\n' \
   '.venv/' \
   '__pycache__/' \
   '.pytest_cache/' \

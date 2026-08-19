@@ -22,10 +22,7 @@ interview_1/
 ├── .gitignore
 ├── .python-version
 ├── .venv/
-├── notes.md
 ├── pyproject.toml
-├── solution.py
-├── test_solution.py
 └── uv.lock
 ```
 
@@ -109,4 +106,3 @@ uv run ruff check .
 uv run ruff format .
 uv run jupyter lab
 ```
-

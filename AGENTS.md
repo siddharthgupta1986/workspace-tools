@@ -85,10 +85,6 @@ Development dependencies, stored in uv's `dev` dependency group:
 
 Each workspace must include:
 
-- `solution.py` with an implementation placeholder.
-- `test_solution.py` with a passing smoke test and a commented Hypothesis
-  property-test example.
-- `notes.md` with sections for questions, complexity, and edge cases.
 - `.gitignore` covering Python, uv, pytest, Ruff, Hypothesis, and Jupyter
   generated files.
 - `.python-version`, `pyproject.toml`, and `uv.lock` managed by uv.
@@ -123,8 +119,8 @@ Each workspace must include:
   `~/workspaces/interview_1` without launching JupyterLab.
 - `wsc` creates sequential `workspace_N` directories without reusing deleted
   numbers.
-- `uv run pytest` passes in a newly generated workspace.
-- `uv run ruff check .` passes in a newly generated workspace.
+- `uv run pytest --version` and `uv run ruff --version` work in a newly
+  generated workspace.
 - All declared runtime and development packages can be imported or invoked.
 - `wsc interview_1` starts JupyterLab using the workspace's `.venv`.
 - `wsd interview_1` moves only that workspace to Trash.
