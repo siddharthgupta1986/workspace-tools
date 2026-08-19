@@ -115,6 +115,19 @@ source .venv/bin/activate
 
 if [[ "$start_jupyter" == true ]]; then
   echo "Virtual environment activated; starting JupyterLab..."
+
+  if command -v jlab >/dev/null 2>&1; then
+    exec jlab --python-path "$destination/.venv/bin/python" "$destination"
+  fi
+
+  desktop_launcher="/Applications/JupyterLab.app/Contents/Resources/app/jlab"
+  if [[ -f "$desktop_launcher" ]]; then
+    exec bash "$desktop_launcher" \
+      --python-path "$destination/.venv/bin/python" \
+      "$destination"
+  fi
+
+  echo "JupyterLab Desktop was not found; opening JupyterLab in a browser."
   exec jupyter lab
 fi
 

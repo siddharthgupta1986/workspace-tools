@@ -47,8 +47,9 @@ Development packages:
 - JupyterLab Code Formatter with Black and isort
 
 Unless `--nj` is supplied, `wsc` activates the new virtual environment and
-starts JupyterLab in the foreground. Stop JupyterLab with `Ctrl+C` to return to
-the calling shell.
+opens the workspace in JupyterLab Desktop using its `.venv`. If the Desktop app
+is unavailable, it falls back to browser-based JupyterLab. Use `--nj` to create
+the workspace without launching either interface.
 
 ### `wsd` — delete a workspace
 
@@ -68,6 +69,11 @@ Requirements:
 - Bash
 - [uv](https://docs.astral.sh/uv/getting-started/installation/)
 - Git
+
+Optional but recommended:
+
+- [JupyterLab Desktop](https://github.com/jupyterlab/jupyterlab-desktop),
+  installable on macOS with `brew install --cask jupyterlab-app`
 
 Add this repository directory to your `PATH` in `~/.zshrc`:
 
