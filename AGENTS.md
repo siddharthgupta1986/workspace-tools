@@ -98,8 +98,10 @@ Each workspace must include:
 
 ### Startup behavior
 
-- By default, activate the new `.venv` and replace the `wsc` process with
-  JupyterLab running in the foreground.
+- By default, activate the new `.venv` and launch JupyterLab Desktop with the
+  workspace directory and `.venv/bin/python` selected.
+- Detect `jlab` on `PATH` first, then the standard macOS application launcher.
+- Fall back to browser-based JupyterLab when Desktop is unavailable.
 - With `--nj`, complete setup without starting JupyterLab and print the command
   needed to activate the environment.
 
@@ -130,7 +132,8 @@ Each workspace must include:
 - All declared runtime and development packages can be imported or invoked.
 - JupyterLab Code Formatter is enabled with Black and isort available as
   formatter backends.
-- `wsc interview_1` starts JupyterLab using the workspace's `.venv`.
+- `wsc interview_1` opens JupyterLab Desktop using the workspace's `.venv`, or
+  browser-based JupyterLab if Desktop is unavailable.
 - `wsd interview_1` moves only that workspace to Trash.
 - Invalid names and existing destinations fail without overwriting data.
 - The repository contains only executable `wsc` and `wsd` scripts plus project
