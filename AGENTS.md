@@ -83,6 +83,9 @@ Development dependencies, stored in uv's `dev` dependency group:
 - jupyterlab-lsp
 - python-lsp-server
 - jupyter-resource-usage
+- jupyterlab-code-formatter
+- black
+- isort
 
 ### Generated files
 
@@ -125,6 +128,8 @@ Each workspace must include:
 - `uv run pytest --version` and `uv run ruff --version` work in a newly
   generated workspace.
 - All declared runtime and development packages can be imported or invoked.
+- JupyterLab Code Formatter is enabled with Black and isort available as
+  formatter backends.
 - `wsc interview_1` starts JupyterLab using the workspace's `.venv`.
 - `wsd interview_1` moves only that workspace to Trash.
 - Invalid names and existing destinations fail without overwriting data.

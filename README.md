@@ -44,6 +44,7 @@ Development packages:
 - ipykernel
 - JupyterLab LSP and Python Language Server
 - Jupyter Resource Usage
+- JupyterLab Code Formatter with Black and isort
 
 Unless `--nj` is supplied, `wsc` activates the new virtual environment and
 starts JupyterLab in the foreground. Stop JupyterLab with `Ctrl+C` to return to
