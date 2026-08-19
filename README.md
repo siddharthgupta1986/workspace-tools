@@ -42,6 +42,8 @@ Development packages:
 - Ruff
 - JupyterLab
 - ipykernel
+- JupyterLab LSP and Python Language Server
+- Jupyter Resource Usage
 
 Unless `--nj` is supplied, `wsc` activates the new virtual environment and
 starts JupyterLab in the foreground. Stop JupyterLab with `Ctrl+C` to return to
