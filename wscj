@@ -1,0 +1,177 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+WORKSPACE_ROOT="${WORKSPACE_ROOT:-$HOME/workspaces}"
+name=""
+
+usage() {
+  echo "Usage: wscj [name]"
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    -* )
+      echo "Unknown option: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+    *)
+      if [[ -n "$name" ]]; then
+        echo "Only one workspace name may be provided" >&2
+        usage >&2
+        exit 2
+      fi
+      name="$1"
+      shift
+      ;;
+  esac
+done
+
+if ! command -v mise >/dev/null 2>&1; then
+  echo "mise is required. Install it with: brew install mise" >&2
+  exit 1
+fi
+
+mkdir -p "$WORKSPACE_ROOT"
+
+if [[ -z "$name" ]]; then
+  counter_file="$WORKSPACE_ROOT/.workspace_counter"
+  last_number=0
+
+  if [[ -f "$counter_file" ]]; then
+    read -r last_number < "$counter_file" || true
+    if [[ ! "$last_number" =~ ^[0-9]+$ ]]; then
+      echo "Invalid counter file: $counter_file" >&2
+      exit 1
+    fi
+  fi
+
+  next_number=$((last_number + 1))
+  while [[ -e "$WORKSPACE_ROOT/workspace_$next_number" ]]; do
+    next_number=$((next_number + 1))
+  done
+
+  printf '%s\n' "$next_number" > "$counter_file"
+  name="workspace_$next_number"
+elif [[ ! "$name" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
+  echo "Invalid workspace name: $name" >&2
+  exit 1
+fi
+
+destination="$WORKSPACE_ROOT/$name"
+if [[ -e "$destination" || -L "$destination" ]]; then
+  echo "Workspace already exists: $destination" >&2
+  exit 1
+fi
+
+mkdir "$destination"
+cd "$destination"
+
+# Pin exact Java 21 and Maven 3 releases. Running setup through mise avoids
+# depending on shell activation or a system-wide JDK/Maven installation.
+mise use --pin java@temurin-21 maven@3
+
+mkdir -p .mvn src/main/java src/test/java
+printf '%s\n' \
+  '-Dmaven.repo.local=.m2/repository' \
+  > .mvn/maven.config
+
+printf '%s\n' \
+  '<?xml version="1.0" encoding="UTF-8"?>' \
+  '<project xmlns="http://maven.apache.org/POM/4.0.0"' \
+  '         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"' \
+  '         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">' \
+  '  <modelVersion>4.0.0</modelVersion>' \
+  '' \
+  '  <groupId>interview</groupId>' \
+  "  <artifactId>$name</artifactId>" \
+  '  <version>1.0-SNAPSHOT</version>' \
+  '' \
+  '  <properties>' \
+  '    <maven.compiler.release>21</maven.compiler.release>' \
+  '    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>' \
+  '    <junit.version>5.14.4</junit.version>' \
+  '    <assertj.version>3.27.7</assertj.version>' \
+  '    <jqwik.version>1.9.3</jqwik.version>' \
+  '  </properties>' \
+  '' \
+  '  <dependencies>' \
+  '    <dependency>' \
+  '      <groupId>org.junit.jupiter</groupId>' \
+  '      <artifactId>junit-jupiter</artifactId>' \
+  '      <version>${junit.version}</version>' \
+  '      <scope>test</scope>' \
+  '    </dependency>' \
+  '    <dependency>' \
+  '      <groupId>org.assertj</groupId>' \
+  '      <artifactId>assertj-core</artifactId>' \
+  '      <version>${assertj.version}</version>' \
+  '      <scope>test</scope>' \
+  '    </dependency>' \
+  '    <dependency>' \
+  '      <groupId>net.jqwik</groupId>' \
+  '      <artifactId>jqwik</artifactId>' \
+  '      <version>${jqwik.version}</version>' \
+  '      <scope>test</scope>' \
+  '    </dependency>' \
+  '  </dependencies>' \
+  '' \
+  '  <build>' \
+  '    <plugins>' \
+  '      <plugin>' \
+  '        <groupId>org.apache.maven.plugins</groupId>' \
+  '        <artifactId>maven-compiler-plugin</artifactId>' \
+  '        <version>3.15.0</version>' \
+  '      </plugin>' \
+  '      <plugin>' \
+  '        <groupId>org.apache.maven.plugins</groupId>' \
+  '        <artifactId>maven-surefire-plugin</artifactId>' \
+  '        <version>3.5.6</version>' \
+  '      </plugin>' \
+  '      <plugin>' \
+  '        <groupId>com.diffplug.spotless</groupId>' \
+  '        <artifactId>spotless-maven-plugin</artifactId>' \
+  '        <version>3.10.0</version>' \
+  '        <configuration>' \
+  '          <java>' \
+  '            <googleJavaFormat>' \
+  '              <version>1.36.1</version>' \
+  '            </googleJavaFormat>' \
+  '          </java>' \
+  '        </configuration>' \
+  '      </plugin>' \
+  '    </plugins>' \
+  '  </build>' \
+  '</project>' \
+  > pom.xml
+
+printf '%s\n' \
+  '.m2/' \
+  'target/' \
+  '*.class' \
+  '*.jar' \
+  '*.log' \
+  '.idea/' \
+  '*.iml' \
+  '.DS_Store' \
+  > .gitignore
+
+# Resolve the pinned toolchain, plugins, and test libraries now so the
+# workspace is ready to use and its Maven repository remains local.
+mise exec -- mvn --batch-mode test
+mise exec -- mvn --batch-mode spotless:check
+
+git init -q
+
+echo "Created: $destination"
+echo "Java: $(mise exec -- java --version 2>&1 | sed -n '1p')"
+echo "Maven: $(mise exec -- mvn --version | sed -n '1p')"
+echo "All Maven dependencies are cached inside this workspace."
+echo "To enter this workspace:"
+echo "  cd '$destination'"
+echo "Run commands without shell activation with:"
+echo "  mise exec -- mvn test"

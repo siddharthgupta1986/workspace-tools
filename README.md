@@ -1,9 +1,9 @@
 # Workspace Tools
 
-Small Bash commands for creating and deleting disposable Python and Node.js
-interview workspaces. Python environments are managed with
-[uv](https://docs.astral.sh/uv/), while Node.js runtimes are pinned with
-[mise](https://mise.jdx.dev/) and dependencies are installed locally with npm.
+Small Bash commands for creating and deleting disposable Python, Node.js, and
+Java interview workspaces. Python environments are managed with
+[uv](https://docs.astral.sh/uv/). Node.js and Java runtimes are pinned with
+[mise](https://mise.jdx.dev/), with dependencies kept inside each workspace.
 
 ## Commands
 
@@ -85,6 +85,33 @@ npm run format
 If mise is not activated in your shell, prefix a command with `mise exec --`,
 for example `mise exec -- npm test`.
 
+### `wscj` — create a Java workspace
+
+```bash
+wscj interview_java  # Creates ~/workspaces/interview_java
+wscj                 # Uses the next shared workspace_N number
+```
+
+Every Java workspace pins exact Java 21 LTS and Maven 3 releases in `mise.toml`.
+It creates a Maven project with JUnit, AssertJ, jqwik property testing, and
+Spotless using Google Java Format. Maven downloads are cached under the
+workspace's `.m2` directory instead of the global `~/.m2` cache.
+
+No starter solution or test files are generated. Source files follow Maven's
+standard layout under `src/main/java` and `src/test/java`.
+
+Useful commands include:
+
+```bash
+mvn test
+mvn spotless:check
+mvn spotless:apply
+jshell
+```
+
+If mise is not activated, use commands such as `mise exec -- mvn test` and
+`mise exec -- jshell`.
+
 ### `wsd` — delete a workspace
 
 ```bash
@@ -127,7 +154,7 @@ source ~/.zshrc
 All scripts must remain executable:
 
 ```bash
-chmod +x wscp wscn wsd
+chmod +x wscp wscn wscj wsd
 ```
 
 ## Configuration
@@ -140,7 +167,7 @@ export WORKSPACE_ROOT="$HOME/interview-workspaces"
 wscp graphs
 ```
 
-Automatic names are shared by `wscp` and `wscn` and tracked in
+Automatic names are shared by `wscp`, `wscn`, and `wscj` and tracked in
 `$WORKSPACE_ROOT/.workspace_counter`, ensuring that numbers increase even if an
 earlier workspace is deleted.
 

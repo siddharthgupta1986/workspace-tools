@@ -3,22 +3,25 @@
 ## Product summary
 
 Workspace Tools is a set of dependency-free Bash commands that create and
-delete isolated Python and Node.js environments for coding-interview
+delete isolated Python, Node.js, and Java environments for coding-interview
 preparation. Python runtimes and dependencies are managed through uv. Node.js
-runtimes are pinned through mise, and npm dependencies remain workspace-local.
+and Java runtimes are pinned through mise, and dependencies remain
+workspace-local.
 
 ## Goals
 
 - Create a ready-to-use Python interview workspace with one short command.
 - Create a ready-to-use Node.js interview workspace with one short command.
-- Keep every Python workspace isolated in its own `.venv` and every Node.js
-  workspace isolated through its local `node_modules`.
+- Create a ready-to-use Java interview workspace with one short command.
+- Keep every Python workspace isolated in its own `.venv`, every Node.js
+  workspace isolated through its local `node_modules`, and every Java
+  workspace isolated through its local `.m2` repository.
 - Make environments reproducible through `pyproject.toml`, `.python-version`,
-  and `uv.lock`.
+  `uv.lock`, `package-lock.json`, `pom.xml`, and pinned mise runtimes.
 - Provide testing, property-testing, formatting, linting, notebook, numerical,
   plotting, and HTTP tooling out of the box.
 - Delete workspaces safely through macOS Trash.
-- Keep the implementation understandable as two standalone Bash scripts.
+- Keep the implementation understandable as standalone Bash scripts.
 
 ## Commands
 
@@ -27,12 +30,14 @@ runtimes are pinned through mise, and npm dependencies remain workspace-local.
 ```text
 wscp [name] [--nj]
 wscn [name]
+wscj [name]
 ```
 
 - With `name`, create `$WORKSPACE_ROOT/name`.
 - Without `name`, create `workspace_N`, where `N` increases monotonically.
 - `wscp` creates a Python workspace; `--nj` prevents JupyterLab from starting.
 - `wscn` creates a Node.js workspace without interacting with Jupyter.
+- `wscj` creates a Java workspace without interacting with Jupyter or Python.
 - `-h` and `--help` print usage without creating anything.
 
 ### Delete
@@ -100,6 +105,13 @@ Node.js development dependencies, stored in the workspace's `devDependencies`:
 - fast-check
 - @biomejs/biome
 
+Java test and development dependencies, managed through Maven:
+
+- JUnit Jupiter
+- AssertJ
+- jqwik
+- Spotless with Google Java Format
+
 ### Generated files
 
 Each Python workspace must include:
@@ -117,6 +129,16 @@ Each Node.js workspace must include:
 - `tsconfig.json`, `biome.json`, `.gitignore`, and a local Git repository.
 - No generated solution, test, notes, or Jupyter files.
 
+Each Java workspace must include:
+
+- Exact Java 21 LTS and Maven 3 releases pinned in `mise.toml`.
+- A Maven `pom.xml` with explicit dependency and plugin versions.
+- JUnit, AssertJ, jqwik, and Spotless ready to use.
+- A workspace-local `.m2` repository; never download dependencies into the
+  global Maven repository.
+- Standard empty source directories, `.gitignore`, and a local Git repository.
+- No generated solution, test, notes, or Jupyter files.
+
 ### Startup behavior
 
 - By default, `wscp` activates the new `.venv` and launches JupyterLab Desktop
@@ -126,6 +148,7 @@ Each Node.js workspace must include:
 - With `--nj`, complete Python setup without starting JupyterLab and print the
   command needed to activate the environment.
 - `wscn` must run setup through `mise exec` so shell activation is not required.
+- `wscj` must run setup through `mise exec` so shell activation is not required.
 
 ### Deletion safety
 
@@ -147,8 +170,8 @@ Each Node.js workspace must include:
 
 - `wscp interview_1 --nj` creates a complete, isolated workspace at
   `~/workspaces/interview_1` without launching JupyterLab.
-- `wscp` and `wscn` share sequential `workspace_N` numbering without reusing
-  deleted numbers.
+- `wscp`, `wscn`, and `wscj` share sequential `workspace_N` numbering without
+  reusing deleted numbers.
 - `uv run pytest --version` and `uv run ruff --version` work in a newly
   generated workspace.
 - All declared runtime and development packages can be imported or invoked.
@@ -158,7 +181,10 @@ Each Node.js workspace must include:
   browser-based JupyterLab if Desktop is unavailable.
 - `wscn interview_node` creates a Node 24 workspace whose TypeScript, testing,
   property-testing, formatting, and linting tools run successfully.
+- `wscj interview_java` creates a Java 21 workspace whose Maven build, JUnit,
+  AssertJ, jqwik, and Spotless tooling run successfully using only its local
+  Maven repository.
 - `wsd interview_1` moves only that workspace to Trash.
 - Invalid names and existing destinations fail without overwriting data.
-- The repository contains only executable `wscp`, `wscn`, and `wsd` scripts
-  plus project documentation and repository metadata.
+- The repository contains only executable `wscp`, `wscn`, `wscj`, and `wsd`
+  scripts plus project documentation and repository metadata.
