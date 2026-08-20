@@ -1,0 +1,128 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+WORKSPACE_ROOT="${WORKSPACE_ROOT:-$HOME/workspaces}"
+DEV_DEPENDENCIES=(
+  typescript
+  @types/node@24
+  tsx
+  vitest
+  fast-check
+  @biomejs/biome
+)
+name=""
+
+usage() {
+  echo "Usage: wscn [name]"
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    -* )
+      echo "Unknown option: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+    *)
+      if [[ -n "$name" ]]; then
+        echo "Only one workspace name may be provided" >&2
+        usage >&2
+        exit 2
+      fi
+      name="$1"
+      shift
+      ;;
+  esac
+done
+
+if ! command -v mise >/dev/null 2>&1; then
+  echo "mise is required. Install it with: brew install mise" >&2
+  exit 1
+fi
+
+mkdir -p "$WORKSPACE_ROOT"
+
+if [[ -z "$name" ]]; then
+  counter_file="$WORKSPACE_ROOT/.workspace_counter"
+  last_number=0
+
+  if [[ -f "$counter_file" ]]; then
+    read -r last_number < "$counter_file" || true
+    if [[ ! "$last_number" =~ ^[0-9]+$ ]]; then
+      echo "Invalid counter file: $counter_file" >&2
+      exit 1
+    fi
+  fi
+
+  next_number=$((last_number + 1))
+  while [[ -e "$WORKSPACE_ROOT/workspace_$next_number" ]]; do
+    next_number=$((next_number + 1))
+  done
+
+  printf '%s\n' "$next_number" > "$counter_file"
+  name="workspace_$next_number"
+elif [[ ! "$name" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
+  echo "Invalid workspace name: $name" >&2
+  exit 1
+fi
+
+destination="$WORKSPACE_ROOT/$name"
+if [[ -e "$destination" || -L "$destination" ]]; then
+  echo "Workspace already exists: $destination" >&2
+  exit 1
+fi
+
+mkdir "$destination"
+cd "$destination"
+
+# Pin an exact Node 24 release in mise.toml and run every setup command through
+# mise so wscn works even when mise has not been activated in the parent shell.
+mise use --pin node@24
+mise exec -- npm init --yes
+mise exec -- npm pkg set type=module
+mise exec -- npm pkg set private=true --json
+mise exec -- npm pkg delete main description keywords author license
+mise exec -- npm pkg set \
+  'scripts.start=tsx index.ts' \
+  'scripts.watch=tsx watch index.ts' \
+  'scripts.test=vitest run --passWithNoTests' \
+  'scripts.test:watch=vitest' \
+  'scripts.typecheck=tsc --noEmit' \
+  'scripts.check=biome check .' \
+  'scripts.format=biome format --write .'
+mise exec -- npm install --save-dev "${DEV_DEPENDENCIES[@]}"
+mise exec -- npx tsc --init \
+  --target esnext \
+  --module nodenext \
+  --moduleResolution nodenext \
+  --types node \
+  --strict \
+  --noEmit
+mise exec -- npx biome init
+mise exec -- npx biome format --write package.json tsconfig.json biome.json
+
+printf '%s\n' \
+  'node_modules/' \
+  'coverage/' \
+  'dist/' \
+  '.env' \
+  '.env.*' \
+  '!.env.example' \
+  '*.log' \
+  '.DS_Store' \
+  > .gitignore
+
+git init -q
+
+echo "Created: $destination"
+echo "Node: $(mise exec -- node --version)"
+echo "npm: $(mise exec -- npm --version)"
+echo "All npm dependencies are local to this workspace."
+echo "To enter this workspace:"
+echo "  cd '$destination'"
+echo "Run commands without shell activation with:"
+echo "  mise exec -- npm test"

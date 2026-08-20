@@ -21,7 +21,7 @@ start_jupyter=true
 name=""
 
 usage() {
-  echo "Usage: wsc [name] [--nj]"
+  echo "Usage: wscp [name] [--nj]"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -85,7 +85,7 @@ fi
 
 mkdir "$destination"
 
-# Ignore any environment that was active when wsc was called. This workspace
+# Ignore any environment that was active when wscp was called. This workspace
 # always gets and uses its own uv-managed virtual environment.
 unset VIRTUAL_ENV
 
