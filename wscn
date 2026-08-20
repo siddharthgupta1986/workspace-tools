@@ -87,8 +87,8 @@ mise exec -- npm pkg set type=module
 mise exec -- npm pkg set private=true --json
 mise exec -- npm pkg delete main description keywords author license
 mise exec -- npm pkg set \
-  'scripts.start=tsx index.ts' \
-  'scripts.watch=tsx watch index.ts' \
+  'scripts.start=tsx Solution.ts' \
+  'scripts.watch=tsx watch Solution.ts' \
   'scripts.test=vitest run --passWithNoTests' \
   'scripts.test:watch=vitest' \
   'scripts.typecheck=tsc --noEmit' \
@@ -103,7 +103,37 @@ mise exec -- npx tsc --init \
   --strict \
   --noEmit
 mise exec -- npx biome init
-mise exec -- npx biome format --write package.json tsconfig.json biome.json
+
+printf '%s\n' \
+  'import { pathToFileURL } from "node:url";' \
+  '' \
+  'export function main(): void {' \
+  '  // Start here.' \
+  '}' \
+  '' \
+  'if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {' \
+  '  main();' \
+  '}' \
+  > Solution.ts
+
+printf '%s\n' \
+  'import { describe, expect, it } from "vitest";' \
+  '' \
+  'import { main } from "./Solution.js";' \
+  '' \
+  'describe("Solution", () => {' \
+  '  it("runs main", () => {' \
+  '    expect(() => main()).not.toThrow();' \
+  '  });' \
+  '});' \
+  > Solution.test.ts
+
+mise exec -- npx biome format --write \
+  package.json \
+  tsconfig.json \
+  biome.json \
+  Solution.ts \
+  Solution.test.ts
 
 printf '%s\n' \
   'node_modules/' \
@@ -115,6 +145,10 @@ printf '%s\n' \
   '*.log' \
   '.DS_Store' \
   > .gitignore
+
+mise exec -- npm test
+mise exec -- npm run typecheck
+mise exec -- npm run check
 
 git init -q
 

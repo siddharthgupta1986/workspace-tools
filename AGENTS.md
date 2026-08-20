@@ -119,6 +119,8 @@ Each Python workspace must include:
 - `.gitignore` covering Python, uv, pytest, Ruff, Hypothesis, and Jupyter
   generated files.
 - `.python-version`, `pyproject.toml`, and `uv.lock` managed by uv.
+- A valid `Solution.ipynb` with the workspace's Python kernel metadata and an
+  empty code cell ready for interview work.
 - A newly initialized local Git repository.
 
 Each Node.js workspace must include:
@@ -127,7 +129,9 @@ Each Node.js workspace must include:
 - `package.json` and `package-lock.json` managed by npm.
 - A workspace-local `node_modules`; never install npm packages globally.
 - `tsconfig.json`, `biome.json`, `.gitignore`, and a local Git repository.
-- No generated solution, test, notes, or Jupyter files.
+- A minimal `Solution.ts` module with `main()` and a passing
+  `Solution.test.ts` Vitest test.
+- No generated notes or Jupyter files.
 
 Each Java workspace must include:
 
@@ -136,8 +140,10 @@ Each Java workspace must include:
 - JUnit, AssertJ, jqwik, and Spotless ready to use.
 - A workspace-local `.m2` repository; never download dependencies into the
   global Maven repository.
-- Standard empty source directories, `.gitignore`, and a local Git repository.
-- No generated solution, test, notes, or Jupyter files.
+- `src/main/java/Solution.java` with a basic class and `main()` method.
+- `src/test/java/SolutionTest.java` with a passing JUnit/AssertJ test.
+- `.gitignore` and a local Git repository.
+- No generated notes or Jupyter files.
 
 ### Startup behavior
 
@@ -174,16 +180,19 @@ Each Java workspace must include:
   reusing deleted numbers.
 - `uv run pytest --version` and `uv run ruff --version` work in a newly
   generated workspace.
+- The generated `Solution.ipynb` is valid notebook format and selects Python 3.
 - All declared runtime and development packages can be imported or invoked.
 - JupyterLab Code Formatter is enabled with Black and isort available as
   formatter backends.
 - `wscp interview_1` opens JupyterLab Desktop using the workspace's `.venv`, or
   browser-based JupyterLab if Desktop is unavailable.
 - `wscn interview_node` creates a Node 24 workspace whose TypeScript, testing,
-  property-testing, formatting, and linting tools run successfully.
+  property-testing, formatting, and linting tools run successfully, including
+  its generated `Solution.ts` and `Solution.test.ts`.
 - `wscj interview_java` creates a Java 21 workspace whose Maven build, JUnit,
   AssertJ, jqwik, and Spotless tooling run successfully using only its local
-  Maven repository.
+  Maven repository, including the generated `Solution.java` and
+  `SolutionTest.java`.
 - `wsd interview_1` moves only that workspace to Trash.
 - Invalid names and existing destinations fail without overwriting data.
 - The repository contains only executable `wscp`, `wscn`, `wscj`, and `wsd`
