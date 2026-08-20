@@ -23,6 +23,7 @@ interview_1/
 ├── .gitignore
 ├── .python-version
 ├── .venv/
+├── Solution.ipynb
 ├── pyproject.toml
 └── uv.lock
 ```
@@ -64,6 +65,10 @@ Every Node workspace pins an exact Node 24 release in `mise.toml` and contains
 `node_modules`, and a newly initialized Git repository. No Jupyter settings or
 Python environments are touched.
 
+The workspace also includes a minimal `Solution.ts` module with a `main()`
+function and a passing `Solution.test.ts` Vitest test. The `start` and `watch`
+scripts run `Solution.ts`.
+
 The following development packages are installed locally:
 
 - TypeScript, `tsx`, and Node.js type definitions
@@ -97,8 +102,8 @@ It creates a Maven project with JUnit, AssertJ, jqwik property testing, and
 Spotless using Google Java Format. Maven downloads are cached under the
 workspace's `.m2` directory instead of the global `~/.m2` cache.
 
-No starter solution or test files are generated. Source files follow Maven's
-standard layout under `src/main/java` and `src/test/java`.
+The Maven project includes a basic `src/main/java/Solution.java` class with a
+`main()` method and a passing `src/test/java/SolutionTest.java` JUnit test.
 
 Useful commands include:
 

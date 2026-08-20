@@ -150,6 +150,29 @@ printf '%s\n' \
   > pom.xml
 
 printf '%s\n' \
+  'public final class Solution {' \
+  '  private Solution() {}' \
+  '' \
+  '  public static void main(String[] args) {' \
+  '    // Start here.' \
+  '  }' \
+  '}' \
+  > src/main/java/Solution.java
+
+printf '%s\n' \
+  'import static org.assertj.core.api.Assertions.assertThatCode;' \
+  '' \
+  'import org.junit.jupiter.api.Test;' \
+  '' \
+  'class SolutionTest {' \
+  '  @Test' \
+  '  void mainRuns() {' \
+  '    assertThatCode(() -> Solution.main(new String[0])).doesNotThrowAnyException();' \
+  '  }' \
+  '}' \
+  > src/test/java/SolutionTest.java
+
+printf '%s\n' \
   '.m2/' \
   'target/' \
   '*.class' \
