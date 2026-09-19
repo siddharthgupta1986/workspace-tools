@@ -104,6 +104,9 @@ workspace's `.m2` directory instead of the global `~/.m2` cache.
 
 The Maven project includes a basic `src/main/java/Solution.java` class with a
 `main()` method and a passing `src/test/java/SolutionTest.java` JUnit test.
+It also writes `.vscode/settings.json` with the exact mise-managed Java 21
+installation, so VS Code can find the JDK even when it was launched from the
+macOS GUI rather than a shell with mise activated.
 
 Useful commands include:
 

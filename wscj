@@ -80,6 +80,28 @@ printf '%s\n' \
   '-Dmaven.repo.local=.m2/repository' \
   > .mvn/maven.config
 
+# VS Code launched from the macOS GUI does not necessarily inherit mise's
+# shell activation. Point the Java extension at the exact JDK used by this
+# workspace so language support and project compilation use the same runtime.
+jdk_home="$(mise where java)"
+if [[ ! -x "$jdk_home/bin/java" ]]; then
+  echo "mise returned an invalid Java installation: $jdk_home" >&2
+  exit 1
+fi
+
+mkdir -p .vscode
+printf '%s\n' \
+  '{' \
+  '  "java.configuration.runtimes": [' \
+  '    {' \
+  '      "name": "JavaSE-21",' \
+  "      \"path\": \"$jdk_home\"," \
+  '      "default": true' \
+  '    }' \
+  '  ]' \
+  '}' \
+  > .vscode/settings.json
+
 printf '%s\n' \
   '<?xml version="1.0" encoding="UTF-8"?>' \
   '<project xmlns="http://maven.apache.org/POM/4.0.0"' \
